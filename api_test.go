@@ -58,12 +58,31 @@ func TestGetArtist(t *testing.T) {
 	if artist.CreationDate != 1970 {
 		t.Errorf("expected creation date 1970, got %d", artist.CreationDate)
 	}
-	
+
 	if len(artist.Members) != 2 {
 		t.Fatalf("expected 2 members, got %d", len(artist.Members))
 	}
 
 	if artist.Members[0] != "Freddie Mercury" {
 		t.Errorf("expected first member Freddie Mercury, got %q", artist.Members[0])
+	}
+}
+// TestGetArtistsHTTPError vérifie que la fonction getArtistsFromURL gère correctement les erreurs HTTP en renvoyant une erreur lorsque le serveur retourne un code de statut 500.
+func TestGetArtistsHTTPError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+		},
+	))
+	defer server.Close()
+
+	artists, err := getArtistsFromURL(server.URL)
+
+	if err == nil {
+		t.Fatal("expected an error, got nil")
+	}
+
+	if artists != nil {
+		t.Errorf("expected nil artists, got %v", artists)
 	}
 }

@@ -1,1 +1,4 @@
-coucou test
+package main
+
+func main() {
+}

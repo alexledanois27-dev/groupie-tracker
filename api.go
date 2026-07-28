@@ -75,9 +75,13 @@ type RelationsResponse struct {
 // =========================
 
 func GetArtists() ([]Artist, error) {
+	// Récupère les artistes depuis l'API officielle.
+	return getArtistsFromURL(artistsURL)
+}
 
-	// Requête HTTP vers l'API.
-	resp, err := http.Get(artistsURL)
+func getArtistsFromURL(url string) ([]Artist, error) {
+	// Effectue une requête HTTP vers l'URL fournie.
+	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}

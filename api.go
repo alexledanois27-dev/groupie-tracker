@@ -114,8 +114,11 @@ func getArtistsFromURL(url string) ([]Artist, error) {
 // =========================
 
 func GetLocations() ([]Location, error) {
+	return getLocationsFromURL(locationsURL)
+}
 
-	resp, err := http.Get(locationsURL)
+func getLocationsFromURL(url string) ([]Location, error) {
+	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -146,8 +149,11 @@ func GetLocations() ([]Location, error) {
 // =========================
 
 func GetConcertDates() ([]ConcertDates, error) {
+	return getConcertDatesFromURL(datesURL)
+}
 
-	resp, err := http.Get(datesURL)
+func getConcertDatesFromURL(url string) ([]ConcertDates, error) {
+	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -177,8 +183,11 @@ func GetConcertDates() ([]ConcertDates, error) {
 // =========================
 
 func GetRelations() ([]Relation, error) {
+	return getRelationsFromURL(relationsURL)
+}
 
-	resp, err := http.Get(relationsURL)
+func getRelationsFromURL(url string) ([]Relation, error) {
+	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}

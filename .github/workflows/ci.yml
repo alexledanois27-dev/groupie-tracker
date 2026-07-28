@@ -17,7 +17,7 @@ jobs:
       - name: Installer Go
         uses: actions/setup-go@v5
         with:
-          go-version: go.mod
+          go-version-file: go.mod
 
       - name: Vérifier la compilation
         run: go build ./...

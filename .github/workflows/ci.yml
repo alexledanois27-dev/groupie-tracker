@@ -1,23 +1,27 @@
 name: Groupie Tracker CI
 
 on:
-  pull_request:
+  push:
     branches:
-      - develop
-      - main
+      - feature/ci
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Récupérer le dépôt
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Installer Go
-        uses: actions/setup-go@v5
+      - name: Afficher le contenu du dépôt
+        run: |
+          pwd
+          ls -la
+          find . -maxdepth 2 -type f
+
+      - uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version: '1.25.0'
 
-      - name: Vérifier la compilation
-        run: go build ./...
+      - run: go version
+
+      - run: go build ./...

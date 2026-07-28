@@ -85,7 +85,7 @@ func GetArtists() ([]Artist, error) {
 
 	// Vérification du code de statut HTTP.
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API returned status: %s", resp.Status)
+		return nil, fmt.Errorf("artists API returned status: %s", resp.Status)
 	}
 
 	// Lecture du corps de la réponse + sauvegarde en bytes dans data.
@@ -117,6 +117,10 @@ func GetLocations() ([]Location, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("locations API returned status: %s", resp.Status)
+	}
+
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -145,6 +149,10 @@ func GetConcertDates() ([]ConcertDates, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("concert dates API returned status: %s", resp.Status)
+	}
+
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -171,6 +179,10 @@ func GetRelations() ([]Relation, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("relations API returned status: %s", resp.Status)
+	}
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {

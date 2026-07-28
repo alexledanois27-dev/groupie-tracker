@@ -67,6 +67,7 @@ func TestGetArtist(t *testing.T) {
 		t.Errorf("expected first member Freddie Mercury, got %q", artist.Members[0])
 	}
 }
+
 // TestGetArtistsHTTPError vérifie que la fonction getArtistsFromURL gère correctement les erreurs HTTP en renvoyant une erreur lorsque le serveur retourne un code de statut 500.
 func TestGetArtistsHTTPError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(
@@ -80,6 +81,37 @@ func TestGetArtistsHTTPError(t *testing.T) {
 
 	if err == nil {
 		t.Fatal("expected an error, got nil")
+	}
+
+	if artists != nil {
+		t.Errorf("expected nil artists, got %v", artists)
+	}
+}
+
+// TestGetArtistsInvalidJSON vérifie que la fonction getArtistsFromURL gère correctement les erreurs de décodage JSON en renvoyant une erreur lorsque le serveur retourne un JSON invalide.
+func TestGetArtistsInvalidJSON(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+
+			_, err := w.Write([]byte(`[
+				{
+					"id": 1,
+					"name": "Queen"
+			]`))
+			// accolade manquante exprèsément pour provoquer une erreur de décodage JSON
+			if err != nil {
+				t.Fatalf("could not write fake API response: %v", err)
+			}
+		},
+	))
+	defer server.Close()
+
+	artists, err := getArtistsFromURL(server.URL)
+
+	if err == nil {
+		t.Fatal("expected JSON decoding error, got nil")
 	}
 
 	if artists != nil {

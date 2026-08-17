@@ -40,7 +40,8 @@ func TestGetArtistsSuccess(t *testing.T) {
 	))
 	defer server.Close()
 
-	artists, err := getArtistsFromURL(server.URL)
+	client := &http.Client{}
+	artists, err := getArtistsFromURL(client, server.URL)
 	if err != nil {
 		t.Fatalf("getArtistsFromURL failed: %v", err)
 	}
@@ -81,7 +82,8 @@ func TestGetArtistsHTTPError(t *testing.T) {
 	))
 	defer server.Close()
 
-	artists, err := getArtistsFromURL(server.URL)
+	client := &http.Client{}
+	artists, err := getArtistsFromURL(client, server.URL)
 
 	if err == nil {
 		t.Fatal("expected an error, got nil")
@@ -111,8 +113,8 @@ func TestGetArtistsInvalidJSON(t *testing.T) {
 		},
 	))
 	defer server.Close()
-
-	artists, err := getArtistsFromURL(server.URL)
+	client := &http.Client{}
+	artists, err := getArtistsFromURL(client, server.URL)
 
 	if err == nil {
 		t.Fatal("expected JSON decoding error, got nil")

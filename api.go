@@ -74,14 +74,14 @@ type RelationsResponse struct {
 // Récupération des artistes
 // =========================
 
-func GetArtists() ([]Artist, error) {
+func GetArtists(client *http.Client) ([]Artist, error) {
 	// Récupère les artistes depuis l'API officielle.
-	return getArtistsFromURL(artistsURL)
+	return getArtistsFromURL(client, artistsURL)
 }
 
-func getArtistsFromURL(url string) ([]Artist, error) {
+func getArtistsFromURL(client *http.Client, url string) ([]Artist, error) {
 	// Effectue une requête HTTP vers l'URL fournie.
-	resp, err := http.Get(url)
+	resp, err := client.Get(url)
 	if err != nil {
 		return nil, err
 	}

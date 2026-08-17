@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"html/template"
 	"io"
@@ -62,32 +61,11 @@ func indexHandler(client *http.Client, indexTemplate *template.Template) http.Ha
 			http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
 			return
 		}
+		artists, err := GetArtists(r.Context(), client)
 
-		req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, apiURLs["/api/artists"], nil)
-		if err != nil {
-			log.Printf("Impossible de créer la requête artists : %v", err)
-			http.Error(w, "Erreur interne du serveur", http.StatusInternalServerError)
-			return
-		}
-
-		response, err := client.Do(req)
 		if err != nil {
 			log.Printf("API artists indisponible : %v", err)
 			http.Error(w, "API distante indisponible", http.StatusBadGateway)
-			return
-		}
-		defer response.Body.Close()
-
-		if response.StatusCode != http.StatusOK {
-			log.Printf("L'API artists a répondu avec le statut %s", response.Status)
-			http.Error(w, "Erreur de l'API distante", http.StatusBadGateway)
-			return
-		}
-
-		var artists []Artist
-		if err := json.NewDecoder(response.Body).Decode(&artists); err != nil {
-			log.Printf("Réponse artists invalide : %v", err)
-			http.Error(w, "Réponse invalide de l'API distante", http.StatusBadGateway)
 			return
 		}
 

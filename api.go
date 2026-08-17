@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"context"
 )
 
 const (
@@ -74,14 +75,19 @@ type RelationsResponse struct {
 // Récupération des artistes
 // =========================
 
-func GetArtists(client *http.Client) ([]Artist, error) {
+func GetArtists(ctx context.Context, client *http.Client) ([]Artist, error) {
 	// Récupère les artistes depuis l'API officielle.
-	return getArtistsFromURL(client, artistsURL)
+	return getArtistsFromURL(ctx, client, artistsURL)
 }
 
-func getArtistsFromURL(client *http.Client, url string) ([]Artist, error) {
+func getArtistsFromURL(ctx context.Context, client *http.Client, url string) ([]Artist, error) {
 	// Effectue une requête HTTP vers l'URL fournie.
-	resp, err := client.Get(url)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	// Corps de la requête vide pour ce cas
+	if err != nil {
+		return nil, err
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}

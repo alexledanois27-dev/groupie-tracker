@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"context"
 )
 
 //--------------------------
@@ -41,7 +42,7 @@ func TestGetArtistsSuccess(t *testing.T) {
 	defer server.Close()
 
 	client := &http.Client{}
-	artists, err := getArtistsFromURL(client, server.URL)
+	artists, err := getArtistsFromURL(context.Background(), client, server.URL)
 	if err != nil {
 		t.Fatalf("getArtistsFromURL failed: %v", err)
 	}
@@ -83,7 +84,7 @@ func TestGetArtistsHTTPError(t *testing.T) {
 	defer server.Close()
 
 	client := &http.Client{}
-	artists, err := getArtistsFromURL(client, server.URL)
+	artists, err := getArtistsFromURL(context.Background(), client, server.URL)
 
 	if err == nil {
 		t.Fatal("expected an error, got nil")
@@ -114,7 +115,7 @@ func TestGetArtistsInvalidJSON(t *testing.T) {
 	))
 	defer server.Close()
 	client := &http.Client{}
-	artists, err := getArtistsFromURL(client, server.URL)
+	artists, err := getArtistsFromURL(context.Background(), client, server.URL)
 
 	if err == nil {
 		t.Fatal("expected JSON decoding error, got nil")

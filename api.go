@@ -1,11 +1,11 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"context"
 )
 
 const (
@@ -119,12 +119,16 @@ func getArtistsFromURL(ctx context.Context, client *http.Client, url string) ([]
 // Récupération des locations
 // =========================
 
-func GetLocations() ([]Location, error) {
-	return getLocationsFromURL(locationsURL)
+func GetLocations(ctx context.Context, client *http.Client) ([]Location, error) {
+	return getLocationsFromURL(ctx, client, locationsURL)
 }
 
-func getLocationsFromURL(url string) ([]Location, error) {
-	resp, err := http.Get(url)
+func getLocationsFromURL(ctx context.Context, client *http.Client, url string) ([]Location, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -154,12 +158,16 @@ func getLocationsFromURL(url string) ([]Location, error) {
 // Récupération des dates
 // =========================
 
-func GetConcertDates() ([]ConcertDates, error) {
-	return getConcertDatesFromURL(datesURL)
+func GetConcertDates(ctx context.Context, client *http.Client) ([]ConcertDates, error) {
+	return getConcertDatesFromURL(ctx, client, datesURL)
 }
 
-func getConcertDatesFromURL(url string) ([]ConcertDates, error) {
-	resp, err := http.Get(url)
+func getConcertDatesFromURL(ctx context.Context, client *http.Client, url string) ([]ConcertDates, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -188,12 +196,16 @@ func getConcertDatesFromURL(url string) ([]ConcertDates, error) {
 // Récupération des relations
 // =========================
 
-func GetRelations() ([]Relation, error) {
-	return getRelationsFromURL(relationsURL)
+func GetRelations(ctx context.Context, client *http.Client) ([]Relation, error) {
+	return getRelationsFromURL(ctx, client, relationsURL)
 }
 
-func getRelationsFromURL(url string) ([]Relation, error) {
-	resp, err := http.Get(url)
+func getRelationsFromURL(ctx context.Context, client *http.Client, url string) ([]Relation, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}

@@ -1,10 +1,10 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"context"
 )
 
 //--------------------------
@@ -155,7 +155,8 @@ func TestGetLocationsSuccess(t *testing.T) {
 	))
 	defer server.Close()
 
-	locations, err := getLocationsFromURL(server.URL)
+	client := &http.Client{}
+	locations, err := getLocationsFromURL(context.Background(), client, server.URL)
 	if err != nil {
 		t.Fatalf("getLocationsFromURL failed: %v", err)
 	}
@@ -189,7 +190,8 @@ func TestGetLocationsHTTPError(t *testing.T) {
 	))
 	defer server.Close()
 
-	locations, err := getLocationsFromURL(server.URL)
+	client := &http.Client{}
+	locations, err := getLocationsFromURL(context.Background(), client, server.URL)
 
 	if err == nil {
 		t.Fatal("expected an error, got nil")
@@ -220,7 +222,8 @@ func TestGetLocationsInvalidJSON(t *testing.T) {
 	))
 	defer server.Close()
 
-	locations, err := getLocationsFromURL(server.URL)
+	client := &http.Client{}
+	locations, err := getLocationsFromURL(context.Background(), client, server.URL)
 
 	if err == nil {
 		t.Fatal("expected JSON decoding error, got nil")
@@ -258,8 +261,8 @@ func TestGetConcertDatesSuccess(t *testing.T) {
 		},
 	))
 	defer server.Close()
-
-	concertDates, err := getConcertDatesFromURL(server.URL)
+	client := &http.Client{}
+	concertDates, err := getConcertDatesFromURL(context.Background(), client, server.URL)
 	if err != nil {
 		t.Fatalf("getConcertDatesFromURL failed: %v", err)
 	}
@@ -296,8 +299,8 @@ func TestGetConcertDatesHTTPError(t *testing.T) {
 		},
 	))
 	defer server.Close()
-
-	concertDates, err := getConcertDatesFromURL(server.URL)
+	client := &http.Client{}
+	concertDates, err := getConcertDatesFromURL(context.Background(), client, server.URL)
 
 	if err == nil {
 		t.Fatal("expected an error, got nil")
@@ -327,8 +330,8 @@ func TestGetConcertDatesInvalidJSON(t *testing.T) {
 		},
 	))
 	defer server.Close()
-
-	concertDates, err := getConcertDatesFromURL(server.URL)
+	client := &http.Client{}
+	concertDates, err := getConcertDatesFromURL(context.Background(), client, server.URL)
 
 	if err == nil {
 		t.Fatal("expected JSON decoding error, got nil")
@@ -368,8 +371,8 @@ func TestGetRelationsSuccess(t *testing.T) {
 		},
 	))
 	defer server.Close()
-
-	relations, err := getRelationsFromURL(server.URL)
+	client := &http.Client{}
+	relations, err := getRelationsFromURL(context.Background(), client, server.URL)
 	if err != nil {
 		t.Fatalf("getRelationsFromURL failed: %v", err)
 	}
@@ -411,8 +414,8 @@ func TestGetRelationsHTTPError(t *testing.T) {
 		},
 	))
 	defer server.Close()
-
-	relations, err := getRelationsFromURL(server.URL)
+	client := &http.Client{}
+	relations, err := getRelationsFromURL(context.Background(), client, server.URL)
 
 	if err == nil {
 		t.Fatal("expected an error, got nil")
@@ -444,8 +447,8 @@ func TestGetRelationsInvalidJSON(t *testing.T) {
 		},
 	))
 	defer server.Close()
-
-	relations, err := getRelationsFromURL(server.URL)
+	client := &http.Client{}
+	relations, err := getRelationsFromURL(context.Background(), client, server.URL)
 
 	if err == nil {
 		t.Fatal("expected JSON decoding error, got nil")

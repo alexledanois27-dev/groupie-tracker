@@ -20,6 +20,7 @@ const (
 	apiTimeout      = 10 * time.Second
 )
 
+// newServer builds the HTTP server and registers the application routes.
 func newServer() (*http.Server, error) {
 	indexTemplate, err := template.ParseFiles("templates/index.html")
 	if err != nil {
@@ -44,6 +45,7 @@ func newServer() (*http.Server, error) {
 	}, nil
 }
 
+// indexHandler fetches the artists and renders the home page.
 func indexHandler(client *http.Client, indexTemplate *template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
@@ -52,39 +54,41 @@ func indexHandler(client *http.Client, indexTemplate *template.Template) http.Ha
 		}
 		if r.Method != http.MethodGet {
 			w.Header().Set("Allow", http.MethodGet)
-			http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 
 		artists, err := GetArtists(r.Context(), client)
 		if err != nil {
-			log.Printf("API artists indisponible : %v", err)
-			http.Error(w, "API distante indisponible", http.StatusBadGateway)
+			log.Printf("Artists API unavailable: %v", err)
+			http.Error(w, "Remote API unavailable", http.StatusBadGateway)
 			return
 		}
 
 		var page bytes.Buffer
 		if err := indexTemplate.ExecuteTemplate(&page, "index.html", artists); err != nil {
-			log.Printf("Impossible de générer la page d'accueil : %v", err)
-			http.Error(w, "Erreur interne du serveur", http.StatusInternalServerError)
+			log.Printf("Failed to render the home page: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		if _, err := page.WriteTo(w); err != nil {
-			log.Printf("Impossible d'envoyer la page d'accueil : %v", err)
+			log.Printf("Failed to send the home page: %v", err)
 		}
 	}
 }
 
+// apiProxyHandler forwards GET requests to one Groupie Trackers API endpoint.
 func apiProxyHandler(client *http.Client, apiURL string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			w.Header().Set("Allow", http.MethodGet)
-			http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 
+		// Preserve query parameters when forwarding the request.
 		requestURL := apiURL
 		if r.URL.RawQuery != "" {
 			requestURL += "?" + r.URL.RawQuery
@@ -92,15 +96,15 @@ func apiProxyHandler(client *http.Client, apiURL string) http.HandlerFunc {
 
 		req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, requestURL, nil)
 		if err != nil {
-			log.Printf("Impossible de créer la requête vers %s : %v", apiURL, err)
-			http.Error(w, "Erreur interne du serveur", http.StatusInternalServerError)
+			log.Printf("Failed to create request to %s: %v", apiURL, err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
 		response, err := client.Do(req)
 		if err != nil {
-			log.Printf("API indisponible (%s) : %v", apiURL, err)
-			http.Error(w, "API distante indisponible", http.StatusBadGateway)
+			log.Printf("API unavailable (%s): %v", apiURL, err)
+			http.Error(w, "Remote API unavailable", http.StatusBadGateway)
 			return
 		}
 		defer response.Body.Close()
@@ -111,11 +115,12 @@ func apiProxyHandler(client *http.Client, apiURL string) http.HandlerFunc {
 		w.WriteHeader(response.StatusCode)
 
 		if _, err := io.Copy(w, response.Body); err != nil {
-			log.Printf("Impossible de transmettre la réponse de %s : %v", apiURL, err)
+			log.Printf("Failed to forward response from %s: %v", apiURL, err)
 		}
 	}
 }
 
+// startServer starts listening in a goroutine and reports the final server error.
 func startServer(server *http.Server) <-chan error {
 	serverErrors := make(chan error, 1)
 
@@ -127,6 +132,7 @@ func startServer(server *http.Server) <-chan error {
 	return serverErrors
 }
 
+// stopServer gives active requests a limited amount of time to finish.
 func stopServer(server *http.Server) error {
 	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
@@ -138,10 +144,11 @@ func stopServer(server *http.Server) error {
 func main() {
 	server, err := newServer()
 	if err != nil {
-		log.Fatalf("Impossible de charger les templates : %v", err)
+		log.Fatalf("Failed to load templates: %v", err)
 	}
 	serverErrors := startServer(server)
 
+	// Handle both interactive interrupts and container termination signals.
 	stopSignal := make(chan os.Signal, 1)
 	signal.Notify(stopSignal, os.Interrupt, syscall.SIGTERM)
 	defer signal.Stop(stopSignal)
@@ -149,12 +156,12 @@ func main() {
 	select {
 	case <-stopSignal:
 		if err := stopServer(server); err != nil {
-			log.Fatalf("Impossible d'arrêter proprement le serveur : %v", err)
+			log.Fatalf("Failed to gracefully stop the server: %v", err)
 		}
 		log.Println("Serveur arrêté.")
 	case err := <-serverErrors:
 		if !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("Erreur du serveur : %v", err)
+			log.Fatalf("Server error: %v", err)
 		}
 	}
 }

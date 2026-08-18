@@ -21,6 +21,7 @@
         name="search"
         placeholder="Search an artist..."
         class="search-input"
+        value="{{.Search}}"
     >
 
     <button type="submit" class="search-button">
@@ -30,7 +31,8 @@
 </form>
 
     <main class="artists">
-        {{range .}}
+        {{if .Artists}}
+        {{range .Artists}}
     <a href="/artist/{{.ID}}" class="card-link">
         <article class="card">
 
@@ -54,6 +56,9 @@
 
         </article>
     </a>
+        {{end}}
+        {{else}}
+        <p class="no-results">No artists found.</p>
         {{end}}
 
     </main>

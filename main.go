@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"html/template"
 	"io"
@@ -21,21 +20,6 @@ const (
 	apiTimeout      = 10 * time.Second
 )
 
-var apiURLs = map[string]string{
-	"/api/artists":   "https://groupietrackers.herokuapp.com/api/artists",
-	"/api/locations": "https://groupietrackers.herokuapp.com/api/locations",
-	"/api/dates":     "https://groupietrackers.herokuapp.com/api/dates",
-	"/api/relation":  "https://groupietrackers.herokuapp.com/api/relation",
-}
-
-type Artist struct {
-	ID           int    `json:"id"`
-	Image        string `json:"image"`
-	Name         string `json:"name"`
-	CreationDate int    `json:"creationDate"`
-	FirstAlbum   string `json:"firstAlbum"`
-}
-
 func newServer() (*http.Server, error) {
 	indexTemplate, err := template.ParseFiles("templates/index.html")
 	if err != nil {
@@ -48,9 +32,10 @@ func newServer() (*http.Server, error) {
 	mux.HandleFunc("/", indexHandler(apiClient, indexTemplate))
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
-	for route, apiURL := range apiURLs {
-		mux.HandleFunc(route, apiProxyHandler(apiClient, apiURL))
-	}
+	mux.HandleFunc("/api/artists", apiProxyHandler(apiClient, artistsURL))
+	mux.HandleFunc("/api/locations", apiProxyHandler(apiClient, locationsURL))
+	mux.HandleFunc("/api/dates", apiProxyHandler(apiClient, datesURL))
+	mux.HandleFunc("/api/relation", apiProxyHandler(apiClient, relationsURL))
 
 	return &http.Server{
 		Addr:              serverAddress,
@@ -71,31 +56,10 @@ func indexHandler(client *http.Client, indexTemplate *template.Template) http.Ha
 			return
 		}
 
-		req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, apiURLs["/api/artists"], nil)
-		if err != nil {
-			log.Printf("Impossible de créer la requête artists : %v", err)
-			http.Error(w, "Erreur interne du serveur", http.StatusInternalServerError)
-			return
-		}
-
-		response, err := client.Do(req)
+		artists, err := GetArtists(r.Context(), client)
 		if err != nil {
 			log.Printf("API artists indisponible : %v", err)
 			http.Error(w, "API distante indisponible", http.StatusBadGateway)
-			return
-		}
-		defer response.Body.Close()
-
-		if response.StatusCode != http.StatusOK {
-			log.Printf("L'API artists a répondu avec le statut %s", response.Status)
-			http.Error(w, "Erreur de l'API distante", http.StatusBadGateway)
-			return
-		}
-
-		var artists []Artist
-		if err := json.NewDecoder(response.Body).Decode(&artists); err != nil {
-			log.Printf("Réponse artists invalide : %v", err)
-			http.Error(w, "Réponse invalide de l'API distante", http.StatusBadGateway)
 			return
 		}
 

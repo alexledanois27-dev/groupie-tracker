@@ -1,57 +1,144 @@
-# Groupie Tracker
+# 🎵 Groupie Tracker
 
-Groupie Tracker is a Go web server that displays artist data from the public
-Groupie Trackers API. It listens on `127.0.0.1:8080` and uses the standard
-library for HTTP handling, JSON decoding, templates, and graceful shutdown.
+Groupie Tracker is a web application developed in Go that allows users to explore information about music artists and bands using the public **Groupie Trackers API**.
 
-## Server overview
+This project was developed as part of the Zone01 curriculum to practice:
 
-At startup, the server loads `templates/index.html`, creates a shared HTTP
-client with a 10-second timeout, and registers the application routes. If the
-template cannot be loaded, the application exits before opening the listening
-socket.
+- Building a web server in Go
+- Working with HTML templates
+- HTTP routing
+- Consuming a REST API
+- JSON parsing
+- Structuring a web application
 
-The home page handler accepts `GET /`, retrieves the artist list through
-`GetArtists`, and renders the HTML template with the decoded artist data. The
-page is rendered into a buffer first so a template error can return a clean
-`500 Internal Server Error` before any partial response is sent.
-The optional `search` query parameter filters group and member names using a
-partial, case-insensitive match. Searching for a member therefore returns the
-group they belong to.
+---
 
-The artist detail handler accepts `GET /artist/{id}`, retrieves the artist and
-relation datasets, and renders `templates/details.html`. A template helper
-turns API location keys such as `new_york-usa` into readable labels such as
-`New York, Usa`. Invalid or unknown artist IDs return `404 Not Found`.
+# ✨ Features
 
-The `/api/*` routes act as a small proxy to the public API. They preserve query
-parameters, forward the remote status code and response body, and reuse the
-same timeout-enabled HTTP client.
+- Display all available artists
+- Search artists by band name
+- Search artists by member name
+- Dedicated details page for each artist
+- Display:
+  - Creation year
+  - First album release date
+  - Band members
+  - Concert locations
+  - Concert dates
+- HTTP error handling (404, 405, 500...)
+- Graceful server shutdown
 
-| Route | Purpose |
-| --- | --- |
-| `GET /` | Render the artist list as HTML |
-| `GET /artist/{id}` | Render one artist and their concert information |
-| `GET /static/*` | Serve files from the local `static` directory |
-| `GET /api/artists` | Proxy the artists endpoint |
-| `GET /api/locations` | Proxy the locations endpoint |
-| `GET /api/dates` | Proxy the concert dates endpoint |
-| `GET /api/relation` | Proxy the relations endpoint |
+---
 
-Unsupported methods return `405 Method Not Allowed`. Requests to the remote
-API inherit the incoming request context, so they are cancelled if the client
-disconnects.
+# 📂 Project Structure
 
-The process listens for `SIGINT` and `SIGTERM`. When either signal arrives, it
-stops accepting new connections and gives active requests up to five seconds
-to complete before shutting down.
+```text
+.
+├── api.go
+├── main.go
+├── go.mod
+├── README.md
+├── static/
+│   ├── style.css
+│   └── ...
+└── templates/
+    ├── index.html
+    └── details.html
+```
 
-## Run locally
+---
 
-From the project root, run:
+# 🚀 Installation
 
-```sh
+Clone the repository:
+
+```bash
+git clone https://github.com/<organization>/groupie-tracker.git
+cd groupie-tracker
+```
+
+Install the dependencies:
+
+```bash
+go mod tidy
+```
+
+Run the application:
+
+```bash
 go run .
 ```
 
-Then open `http://127.0.0.1:8080` in a browser.
+The server will start on:
+
+```
+http://127.0.0.1:8080
+```
+
+---
+
+# 🌐 Available Routes
+
+| Route | Description |
+|--------|-------------|
+| `/` | Display the list of artists |
+| `/artist/{id}` | Display detailed information about an artist |
+| `/api/artists` | Proxy to the Artists API |
+| `/api/locations` | Proxy to the Locations API |
+| `/api/dates` | Proxy to the Dates API |
+| `/api/relation` | Proxy to the Relations API |
+| `/static/*` | Serve static assets |
+
+---
+
+# ⚙️ Technologies Used
+
+- Go
+- HTML5
+- CSS3
+- Go Templates
+- `net/http`
+- JSON
+- Groupie Trackers API
+
+---
+
+# 📡 API
+
+The application retrieves its data from the public **Groupie Trackers API**.
+
+The API provides:
+
+- Artists
+- Band members
+- Concert locations
+- Concert dates
+- Relationships between locations and dates
+
+---
+
+# 📚 Learning Objectives
+
+This project demonstrates the use of:
+
+- HTTP servers in Go
+- HTML templating
+- HTTP routing
+- REST API consumption
+- JSON decoding
+- Error handling
+- Clean project organization
+
+---
+
+# 👥 Authors
+
+- Alexandre Ledanois
+- Tom Marcel
+- Nathalie Camargo
+
+---
+
+# 📄 License
+
+This project was developed for educational purposes as part of the Zone01 curriculum.

@@ -15,6 +15,9 @@ The home page handler accepts `GET /`, retrieves the artist list through
 `GetArtists`, and renders the HTML template with the decoded artist data. The
 page is rendered into a buffer first so a template error can return a clean
 `500 Internal Server Error` before any partial response is sent.
+The optional `search` query parameter filters group and member names using a
+partial, case-insensitive match. Searching for a member therefore returns the
+group they belong to.
 
 The artist detail handler accepts `GET /artist/{id}`, retrieves the artist and
 relation datasets, and renders `templates/details.html`. A template helper

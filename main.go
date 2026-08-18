@@ -28,11 +28,42 @@ type DetailPage struct {
 	Relation Relation
 }
 
+// IndexPage contains the filtered artists and the current search term.
+type IndexPage struct {
+	Artists []Artist
+	Search  string
+}
+
 // formatLocation converts API location keys into human-readable labels.
 func formatLocation(location string) string {
 	location = strings.ReplaceAll(location, "_", " ")
 	location = strings.ReplaceAll(location, "-", ", ")
 	return strings.Title(location)
+}
+
+// filterArtists matches the search term against group and member names.
+func filterArtists(artists []Artist, search string) []Artist {
+	search = strings.ToLower(strings.TrimSpace(search))
+	if search == "" {
+		return artists
+	}
+
+	filtered := make([]Artist, 0)
+	for _, artist := range artists {
+		matches := strings.Contains(strings.ToLower(artist.Name), search)
+		for _, member := range artist.Members {
+			if strings.Contains(strings.ToLower(member), search) {
+				matches = true
+				break
+			}
+		}
+
+		if matches {
+			filtered = append(filtered, artist)
+		}
+	}
+
+	return filtered
 }
 
 // newServer builds the HTTP server and registers the application routes.
@@ -89,8 +120,14 @@ func indexHandler(client *http.Client, indexTemplate *template.Template) http.Ha
 			return
 		}
 
+		search := strings.TrimSpace(r.URL.Query().Get("search"))
+		pageData := IndexPage{
+			Artists: filterArtists(artists, search),
+			Search:  search,
+		}
+
 		var page bytes.Buffer
-		if err := indexTemplate.ExecuteTemplate(&page, "index.html", artists); err != nil {
+		if err := indexTemplate.ExecuteTemplate(&page, "index.html", pageData); err != nil {
 			log.Printf("Failed to render the home page: %v", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return

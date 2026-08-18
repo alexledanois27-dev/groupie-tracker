@@ -16,6 +16,11 @@ The home page handler accepts `GET /`, retrieves the artist list through
 page is rendered into a buffer first so a template error can return a clean
 `500 Internal Server Error` before any partial response is sent.
 
+The artist detail handler accepts `GET /artist/{id}`, retrieves the artist and
+relation datasets, and renders `templates/details.html`. A template helper
+turns API location keys such as `new_york-usa` into readable labels such as
+`New York, Usa`. Invalid or unknown artist IDs return `404 Not Found`.
+
 The `/api/*` routes act as a small proxy to the public API. They preserve query
 parameters, forward the remote status code and response body, and reuse the
 same timeout-enabled HTTP client.
@@ -23,6 +28,7 @@ same timeout-enabled HTTP client.
 | Route | Purpose |
 | --- | --- |
 | `GET /` | Render the artist list as HTML |
+| `GET /artist/{id}` | Render one artist and their concert information |
 | `GET /static/*` | Serve files from the local `static` directory |
 | `GET /api/artists` | Proxy the artists endpoint |
 | `GET /api/locations` | Proxy the locations endpoint |

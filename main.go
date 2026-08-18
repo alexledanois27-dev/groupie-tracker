@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -20,9 +22,30 @@ const (
 	apiTimeout      = 10 * time.Second
 )
 
+// DetailPage contains the artist and concert data rendered on a detail page.
+type DetailPage struct {
+	Artist   Artist
+	Relation Relation
+}
+
+// formatLocation converts API location keys into human-readable labels.
+func formatLocation(location string) string {
+	location = strings.ReplaceAll(location, "_", " ")
+	location = strings.ReplaceAll(location, "-", ", ")
+	return strings.Title(location)
+}
+
 // newServer builds the HTTP server and registers the application routes.
 func newServer() (*http.Server, error) {
 	indexTemplate, err := template.ParseFiles("templates/index.html")
+	if err != nil {
+		return nil, err
+	}
+
+	funcMap := template.FuncMap{
+		"formatLocation": formatLocation,
+	}
+	detailsTemplate, err := template.New("details.html").Funcs(funcMap).ParseFiles("templates/details.html")
 	if err != nil {
 		return nil, err
 	}
@@ -31,6 +54,7 @@ func newServer() (*http.Server, error) {
 	apiClient := &http.Client{Timeout: apiTimeout}
 
 	mux.HandleFunc("/", indexHandler(apiClient, indexTemplate))
+	mux.HandleFunc("/artist/", detailHandler(apiClient, detailsTemplate))
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	mux.HandleFunc("/api/artists", apiProxyHandler(apiClient, artistsURL))
@@ -75,6 +99,60 @@ func indexHandler(client *http.Client, indexTemplate *template.Template) http.Ha
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		if _, err := page.WriteTo(w); err != nil {
 			log.Printf("Failed to send the home page: %v", err)
+		}
+	}
+}
+
+// detailHandler renders the artist and concert information for one artist ID.
+func detailHandler(client *http.Client, detailsTemplate *template.Template) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			w.Header().Set("Allow", http.MethodGet)
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		idText := strings.TrimPrefix(r.URL.Path, "/artist/")
+		id, err := strconv.Atoi(idText)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		artists, err := GetArtists(r.Context(), client)
+		if err != nil {
+			log.Printf("Artists API unavailable: %v", err)
+			http.Error(w, "Remote API unavailable", http.StatusBadGateway)
+			return
+		}
+
+		relations, err := GetRelations(r.Context(), client)
+		if err != nil {
+			log.Printf("Relations API unavailable: %v", err)
+			http.Error(w, "Remote API unavailable", http.StatusBadGateway)
+			return
+		}
+
+		if id < 1 || id > len(artists) || id > len(relations) {
+			http.NotFound(w, r)
+			return
+		}
+
+		pageData := DetailPage{
+			Artist:   artists[id-1],
+			Relation: relations[id-1],
+		}
+
+		var page bytes.Buffer
+		if err := detailsTemplate.ExecuteTemplate(&page, "details.html", pageData); err != nil {
+			log.Printf("Failed to render artist detail page: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		if _, err := page.WriteTo(w); err != nil {
+			log.Printf("Failed to send artist detail page: %v", err)
 		}
 	}
 }

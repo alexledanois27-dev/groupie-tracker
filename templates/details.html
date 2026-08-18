@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>{{.Artist.Name}} - Groupie Tracker</title>
+
+<link rel="stylesheet" href="/static/style.css?v=3">
+
+</head>
+
+<body>
+
+<header class="details-header">
+    <a href="/" class="back-link">← Back to artists</a>
+</header>
+
+<main class="details-page">
+
+    <!-- =========================
+         Informations de l'artiste
+    ========================== -->
+
+    <section class="artist-profile">
+
+        <div class="artist-image">
+
+            <img
+                src="{{.Artist.Image}}"
+                alt="{{.Artist.Name}}"
+            >
+
+        </div>
+
+        <div class="artist-info">
+
+            <h1>{{.Artist.Name}}</h1>
+
+            <div class="artist-meta">
+
+                <p>
+                    <strong>Creation year:</strong>
+                    {{.Artist.CreationDate}}
+                </p>
+
+                <p>
+                    <strong>First album:</strong>
+                    {{.Artist.FirstAlbum}}
+                </p>
+
+            </div>
+
+            <!-- =========================
+                 Membres
+            ========================== -->
+
+            <div class="members">
+
+                <h2>Members</h2>
+
+                <ul>
+                    {{range .Artist.Members}}
+
+                        <li>{{.}}</li>
+
+                    {{end}}
+                </ul>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         Concerts
+    ========================== -->
+
+    <section class="concerts">
+
+        <h2>Concerts</h2>
+
+        <div class="concert-grid">
+
+            {{range $city, $dates := .Relation.DatesLocations}}
+
+                <article class="concert-card">
+
+                    <h3>
+                        📍 {{formatLocation $city}}
+                    </h3>
+
+                    <ul>
+
+                        {{range $dates}}
+
+                            <li>
+                                📅 {{.}}
+                            </li>
+
+                        {{end}}
+
+                    </ul>
+
+                </article>
+
+            {{end}}
+
+        </div>
+
+    </section>
+
+</main>
+```
+
+</body>
+
+</html>
